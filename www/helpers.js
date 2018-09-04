@@ -39,6 +39,43 @@ function wrapMediaFiles (pluginResult) {
     return mediaFiles;
 }
 
+function wrapVideoMediaFiles (pluginResult) {
+    var mediaFiles = [];
+    var i;
+    for (i = 0; i < pluginResult.length; i++) {
+        var mediaResult = {
+            image: undefined,
+            video: undefined,
+        };
+        var image = new MediaFile();
+        var video = new MediaFile();
+        var imageDict = pluginResult[i].image; // {image: foo}};
+        var videoDict = pluginResult[i].video; // {video: foo}};
+
+        // image -  Backwards compatibility
+        image.name = imageDict.name;
+        image.localURL = imageDict.localURL || imageDict.fullPath;
+        image.fullPath = imageDict.fullPath;
+        image.type = imageDict.type;
+        image.lastModifiedDate = imageDict.lastModifiedDate;
+        image.size = imageDict.size;
+
+        // video - Backwards compatibility
+        video.name = videoDict.name;
+        video.localURL = videoDict.localURL || videoDict.fullPath;
+        video.fullPath = videoDict.fullPath;
+        video.type = videoDict.type;
+        video.lastModifiedDate = videoDict.lastModifiedDate;
+        video.size = videoDict.size;
+
+        mediaResult.image = image;
+        mediaResult.video = video;
+        mediaFiles.push(mediaResult);
+    }
+    return mediaFiles;
+}
+
 module.exports = {
-    wrapMediaFiles: wrapMediaFiles
+    wrapMediaFiles: wrapMediaFiles,
+    wrapVideoMediaFiles: wrapVideoMediaFiles,
 };

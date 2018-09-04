@@ -37,6 +37,14 @@ function _capture (type, successCallback, errorCallback, options) {
     exec(win, errorCallback, 'Capture', type, [options]);
 }
 
+function _captureVideo (type, successCallback, errorCallback, options) {
+    var win = function (pluginResult) {
+        successCallback(helpers.wrapVideoMediaFiles(pluginResult));
+    }
+
+    exec(win, errorCallback, 'Capture', type, [options]);
+}
+
 /**
  * The Capture interface exposes an interface to the camera and microphone of the hosting device.
  */
@@ -76,7 +84,7 @@ Capture.prototype.captureImage = function (successCallback, errorCallback, optio
  * @param {CaptureVideoOptions} options
  */
 Capture.prototype.captureVideo = function (successCallback, errorCallback, options) {
-    _capture('captureVideo', successCallback, errorCallback, options);
+    _captureVideo('captureVideo', successCallback, errorCallback, options);
 };
 
 module.exports = new Capture();
