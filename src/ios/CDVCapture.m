@@ -355,7 +355,10 @@
 
         NSDictionary* fileDict = [self getMediaDictionaryFromPath:filePath ofType:nil];
         NSDictionary* movieDict = [self getMediaDictionaryFromPath:moviePathCopy ofType:nil];
-        NSArray* fileArray = [NSArray arrayWithObjects:fileDict, movieDict, nil];
+        NSMutableDictionary * combinedDict = [[NSMutableDictionary alloc] init];
+        [combinedDict setObject:fileDict forKey:@"image"];
+        [combinedDict setObject:movieDict forKey:@"video"];
+        NSArray* fileArray = [NSArray arrayWithObjects: combinedDict, nil];
 
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:fileArray];
     }
