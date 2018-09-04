@@ -266,7 +266,7 @@
         // iOS 4.0
         if ([pickerController respondsToSelector:@selector(cameraCaptureMode)]) {
             pickerController.cameraCaptureMode = UIImagePickerControllerCameraCaptureModeVideo;
-            // pickerController.videoQuality = UIImagePickerControllerQualityTypeHigh;
+//            pickerController.videoQuality = UIImagePickerControllerQualityTypeHigh;
             // pickerController.cameraDevice = UIImagePickerControllerCameraDeviceRear;
             // pickerController.cameraFlashMode = UIImagePickerControllerCameraFlashModeAuto;
         }
@@ -289,10 +289,78 @@
         NSLog(@"finished saving movie");
     }*/
     // create MediaFile object
-    NSDictionary* fileDict = [self getMediaDictionaryFromPath:moviePath ofType:nil];
-    NSArray* fileArray = [NSArray arrayWithObject:fileDict];
 
-    return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:fileArray];
+    // removing /private
+    NSRange range = NSMakeRange(8, moviePath.length - 8);
+    moviePath = [moviePath substringWithRange:range];
+    // copy after removing /private
+    NSString *moviePathCopy = [NSString stringWithString:moviePath];
+    // adding prefix file://
+    moviePath = [NSString stringWithFormat:@"file://%@", moviePath];
+    NSURL* movieURL = [[NSURL alloc] initWithString:moviePath];
+    UIImage *movieThumbnail = nil;
+    AVURLAsset* movieAsset = [AVURLAsset URLAssetWithURL:movieURL options:nil];
+
+    NSArray *tracks = [movieAsset tracksWithMediaType:AVMediaTypeVideo];
+
+    if ([tracks count] != 0) {
+        // And lastly, let's generate a thumbnail of the movie
+        AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:movieAsset];
+
+        if (imageGenerator != NULL) {
+
+            CMTime      thumbPoint = kCMTimeZero;
+            NSError     *error = nil;
+
+            CGImageRef thumbnail = [imageGenerator copyCGImageAtTime:thumbPoint actualTime:nil error:&error];
+
+            if (thumbnail != NULL) {
+                // Convert CGImage thumbnail to UIImage and then scale it.
+                movieThumbnail = [[UIImage alloc] initWithCGImage:thumbnail];
+
+                if (movieThumbnail != NULL) {
+                    // Let's scale the image and put the it into the imageview.
+
+                    movieThumbnail = [[UIImage alloc] initWithCGImage: movieThumbnail.CGImage
+                                                                       scale: 1.0
+                                                                       orientation: UIImageOrientationRight];
+                    CGImageRelease(thumbnail);
+                }
+            }
+        }
+    }
+
+    CDVPluginResult* result = nil;
+    NSData* data = UIImageJPEGRepresentation(movieThumbnail, 1);
+
+    // write to temp directory and return URI
+    NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];   // use file system temporary directory
+    NSError* err = nil;
+    NSFileManager* fileMgr = [[NSFileManager alloc] init];
+
+    // generate unique file name
+    NSString* filePath;
+    int i = 1;
+    do {
+        filePath = [NSString stringWithFormat:@"%@/movie_thumb_%03d.jpg", docsPath, i++];
+    } while ([fileMgr fileExistsAtPath:filePath]);
+
+    if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageToErrorObject:CAPTURE_INTERNAL_ERR];
+        if (err) {
+            NSLog(@"Error saving image: %@", [err localizedDescription]);
+        }
+    } else {
+        // create MediaFile object
+
+        NSDictionary* fileDict = [self getMediaDictionaryFromPath:filePath ofType:nil];
+        NSDictionary* movieDict = [self getMediaDictionaryFromPath:moviePathCopy ofType:nil];
+        NSArray* fileArray = [NSArray arrayWithObjects:fileDict, movieDict, nil];
+
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:fileArray];
+    }
+
+    return result;
 }
 
 - (void)showAlertIfAccessProhibited
@@ -560,6 +628,7 @@
         result = [self processImage:image type:cameraPicker.mimeType forCallbackId:callbackId];
     } else if ([mediaType isEqualToString:(NSString*)kUTTypeMovie]) {
         // process video
+
         NSString* moviePath = [(NSURL *)[info objectForKey:UIImagePickerControllerMediaURL] path];
         if (moviePath) {
             result = [self processVideo:moviePath forCallbackId:callbackId];
