@@ -60,7 +60,7 @@ interface Capture {
     supportedVideoModes: ConfigurationData[];
 }
 
-interface MediaResult {
+export interface MediaResult {
 
     image: MediaFile;
     video: MediaFile;
