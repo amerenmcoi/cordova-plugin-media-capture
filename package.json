@@ -1,10 +1,10 @@
 {
-  "name": "cordova-plugin-media-capture",
+  "name": "com.ameren.mediacapture",
   "version": "3.0.3-dev",
   "description": "Cordova Media Capture Plugin",
   "types": "./types/index.d.ts",
   "cordova": {
-    "id": "cordova-plugin-media-capture",
+    "id": "com.ameren.mediacapture",
     "platforms": [
       "android",
       "ios",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/cordova-plugin-media-capture"
+    "url": "https://github.com/amerenmcoi/cordova-plugin-media-capture"
   },
   "bugs": {
     "url": "https://issues.apache.org/jira/browse/CB"
