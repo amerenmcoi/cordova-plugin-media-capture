@@ -20,6 +20,7 @@
 #import "CDVCapture.h"
 #import "CDVFile.h"
 #import <Cordova/CDVAvailability.h>
+#import "UIImage+Orientation.h"
 
 #define kW3CMediaFormatHeight @"height"
 #define kW3CMediaFormatWidth @"width"
@@ -171,6 +172,8 @@
 - (CDVPluginResult*)processImage:(UIImage*)image type:(NSString*)mimeType forCallbackId:(NSString*)callbackId
 {
     CDVPluginResult* result = nil;
+
+    image = [image imageCorrectedForCaptureOrientation];
 
     // save the image to photo album
     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
